@@ -9,5 +9,5 @@
     file.baseDir:用于配置文件上传目录
 
 # 用户名与密码
-#### 用户名:admin/system
-#### 密码:admin
+    用户名:admin/system
+    密码:admin
