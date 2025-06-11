@@ -1,0 +1,74 @@
+<% layout('/layouts/default.html', {title: '登录', libs: ['validate'], bodyClass: 'login-page'}){ %>
+<% include('/include/upgrade.html'){} // 如果客户浏览器版本过低，则显示浏览器升级提示。 %>
+<!-- <link rel="stylesheet" href="${ctxStatic}/icheck/1.0/square/blue.css?${_version}"> -->
+<link rel="stylesheet" href="${ctxStatic}/jquery-toastr/2.1/toastr.min.css?${_version}">
+<link rel="stylesheet" href="${ctxStatic}/modules/sys/sysLogin.css?${_version}">
+<div class="login-box" style="margin:7% auto 300px auto;">
+	<div class="login-logo">
+		<a href="${ctxAdmin}/login">
+			<b>${@Global.getConfig('productNamePrefix')}${@Global.getConfig('productName')}</b>
+			<small>${@Global.getConfig('productVersion')}</small>
+		</a>
+	</div>
+	<div class="login-box-body" style="padding-top: 50px;">
+		<% var defaultSkinName = @Global.getConfig('sys.index.skinName', 'skin-blue-light3');
+		var skinName = cookie('skinName', false, defaultSkinName);
+		if (skinName == 'skin-dark') { %>
+			<a class="switchSkin" href="${ctxAdmin}/switchSkin/${defaultSkinName}" title="${text('浅色模式')}"><i class="fa fa-toggle-off"></i></a>
+		<% }else{ %>
+			<a class="switchSkin" href="${ctxAdmin}/switchSkin/skin-dark" title="${text('黑暗模式')}"><i class="fa fa-toggle-on"></i></a>
+		<% } %>
+		<% var isLoginByValidCode = @Global.getConfigToBoolean('user.loginByValidCode', 'true'); %>
+
+		<#form:form id="loginForm" model="${user!}" action="${ctxAdmin}/login" method="post" class="tab-content">
+			<% if(!isLoginByValidCode && isBlank(message!)){ %>
+				<h4 class="login-box-msg">${text('欢迎回来')+'！'}</h4>
+			<% }else if(isNotBlank(message!)){ %>
+				<h4 class="login-box-msg text-red">${message}</h4>
+			<% } %>
+			<div class="form-group has-feedback tab-pane tab-1 tab-3 active">
+				<span class="icon-user form-control-feedback" title="${text('登录账号')}"></span>
+				<#form:input type="text" name="username" class="form-control required"
+					data-msg-required="${text('请填写登录账号.')}" placeholder="${text('登录账号')}"
+					value="${cookie('rememberUserCode')}"/>
+			</div>
+			<div class="form-group has-feedback tab-pane tab-1 tab-3 active">
+				<span class="icon-lock form-control-feedback" title="${text('登录密码，鼠标按下显示密码')}"
+					onmousedown="$('#password').attr('type','text')" onmouseup="$('#password').attr('type','password')"
+					onmouseenter="$(this).removeClass('icon-lock').addClass('icon-eye')"
+					onmouseout="$(this).removeClass('icon-eye').addClass('icon-lock')"></span>
+				<#form:input type="password" name="password" class="form-control required"
+					data-msg-required="${text('请填写登录密码.')}" placeholder="${text('登录密码')}" autocomplete="off"/>
+			</div>
+			<div class="form-group has-feedback" id="isValidCodeLogin" style="display:${isValidCodeLogin?'blank':'none'}">
+				<#form:validcode name="validCode" isRequired="true" isRemote="true" isLazy="${!isValidCodeLogin}"/>
+			</div>
+
+			<div class="form-group">
+				<div class="mt5 icheck">
+					<label title="${text('公共场所慎用,下次不需要再填写帐号')}"><input type="checkbox"
+						name="rememberUserCode"${isNotBlank(cookie('rememberUserCode'))?' checked':''}
+						class="form-control" data-style="minimal-grey"> ${text('记住账号')}</label> &nbsp; 
+					<label title="${text('公共场所慎用,下次不需要再填写帐号和密码')}"><input type="checkbox"
+						name="rememberMe"${isNotBlank(cookie('rememberMe'))?' checked':''}
+						class="form-control" data-style="minimal-grey"> ${text('自动登录')}</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<!-- <input type="hidden" name="param_deviceType" value="pc"> -->
+				<input type="hidden" name="__url" value="${parameter.__url!}">
+				<button type="submit" class="btn btn-primary btn-block btn-flat"
+					id="btnSubmit" data-loading="${text('登录验证成功，正在进入...')}"
+					data-login-valid="${text('正在验证登录，请稍候...')}">${text('立即登录')}</button>
+			</div>
+		</#form:form>
+	</div>
+	<div class="login-copyright">
+		<input type="hidden" id="loginKey" data-key="${@Global.getConfig('shiro.loginSubmit.secretKey')}" />
+		&copy; ${@DateUtils.getYear()} ${@Global.getConfig('productName')} - Powered By ${@Global.getConfig('companyName')}
+	</div>
+</div>
+<% } %>
+<script src="${ctxStatic}/common/des.js?${_version}"></script>
+<script src="${ctxStatic}/jquery-toastr/2.1/toastr.min.js?${_version}"></script>
+<script src="${ctxStatic}/modules/sys/sysLogin.js?${_version}"></script>
