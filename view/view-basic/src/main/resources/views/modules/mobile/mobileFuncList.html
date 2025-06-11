@@ -1,0 +1,116 @@
+<% layout('/layouts/default.html', {title: '移动端功能码管理', libs: ['dataGrid']}){ %>
+
+<style>
+	.userinfo-avatar {
+		width: 60px;
+		height: 60px;
+		border-radius: 10%;
+	}
+
+</style>
+
+<div class="main-content">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa icon-notebook"></i> ${text('移动端功能码管理')}
+			</div>
+			<div class="box-tools pull-right">
+				//# if(hasPermi('mobile:mobileFunc:edit')){
+					<a href="${ctx}/mobile/mobileFunc/form" class="btn btn-default btnTool" title="${text('新增移动端功能码')}"><i class="fa fa-plus"></i> ${text('新增')}</a>
+				<a href="#" class="btn btn-default" id="btnDeletes"><i class="fa fa-trash-o"></i> ${text('批量删除')}</a>
+				//# }
+			</div>
+		</div>
+		<div class="box-body">
+			<#form:form id="searchForm" model="${mobileFunc}" action="${ctx}/mobile/mobileFunc/listData" method="post" class="form-inline"
+					data-page-no="${parameter.pageNo}" data-page-size="${parameter.pageSize}" data-order-by="${parameter.orderBy}">
+				<div class="form-group">
+					<label class="control-label">${text('标题')}：</label>
+					<div class="control-inline">
+						<#form:input path="funcTitle" maxlength="20" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('功能码')}：</label>
+					<div class="control-inline">
+						<#form:input path="funcCode" maxlength="64" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">${text('查询')}</button>
+					<button type="reset" class="btn btn-default btn-sm">${text('重置')}</button>
+				</div>
+			</#form:form>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+		</div>
+	</div>
+</div>
+<% } %>
+<script>
+	//# if(hasPermi('mobile:mobileFunc:edit')){
+	$('#btnDeletes').click(function(){
+		var ids=$('#dataGrid').dataGrid('getSelectRows');
+		if (ids==undefined || ids=='') {
+			js.showErrorMessage("${text('请选择需要删除的移动端功能码')}");
+			return;
+		}
+
+		let data={ids:ids.join(',')};
+
+		js.confirm(
+				'确认删除选中作业缓存吗？',
+				'${ctx}/mobile/mobileFunc//deletes',
+				data,
+				function(data){
+					js.showMessage(data.message);
+					page();
+				},
+				'json',
+				true,
+				'正在删除移动端功能码...'
+		);
+
+	});
+
+
+	//# }
+
+	function showImage(path) {
+		if (path==null || path=='') return '';
+		return '<img src="'+path+'" class="userinfo-avatar" />';
+
+	}
+// 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	showRownum:false,
+	//# if(hasPermi('mobile:mobileFunc:edit')){
+	showCheckbox:true,
+	//# }
+	columnModel: [
+		{header:'${text("图片")}', name:'imagePath', width:80, align:"center",sortable:false, frozen:true, formatter: function(val, obj, row, act){
+				return showImage(val);
+			}},
+		{header:'${text("排序号")}', name:'orderNum', index:'a.order_num', width:80, align:"center"},
+		{header:'${text("标题")}', name:'funcTitle', index:'a.func_title', width:300, align:"left"},
+		{header:'${text("功能码")}', name:'funcCode', index:'a.func_code', width:250, align:"left"},
+		{header:'${text("操作")}', name:'actions', width:120, align:"center", formatter: function(val, obj, row, act){
+			var actions = [];
+			//# if(hasPermi('mobile:mobileFunc:edit')){
+			actions.push('<a href="${ctx}/mobile/mobileFunc/form?id='+row.id+'" class="btnList" title="${text("编辑移动端功能码")}"><i class="fa fa-pencil"></i>编辑</a>&nbsp;');
+			actions.push('<a href="${ctx}/mobile/mobileFunc/delete?id='+row.id+'" class="btnList" title="${text("删除移动端功能码")}" data-confirm="${text("确认要删除该移动端功能码吗？")}"><i class="fa fa-trash-o"></i>删除</a>&nbsp;');
+			//# }
+			//# if(hasPermi('mobile:mobileRoleFunc:view')){
+				actions.push('<a href="${ctx}/mobile/mobileRoleFunc/list?funcId='+row.id+'" class="btnList" title="${text("功能码角色")}"><i class="fa fa-list"></i>授权角色</a>&nbsp;');
+			//# }
+			return actions.join('');
+		}}
+	],
+	// 加载成功后执行事件
+	ajaxSuccess: function(data){
+		
+	}
+});
+</script>

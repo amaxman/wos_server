@@ -1,0 +1,107 @@
+<% layout('/layouts/default.html', {title: '角色功能管理', libs: ['dataGrid']}){ %>
+<div class="main-content">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa icon-notebook"></i> ${text('角色功能管理')}
+			</div>
+			<div class="box-tools pull-right">
+				//# if(hasPermi('mobile:mobileRoleFunc:edit')){
+					<a href="${ctx}/mobile/mobileRoleFunc/form?funcId=${mobileRoleFunc.funcId}" class="btn btn-default btnTool" title="${text('新增角色功能')}"><i class="fa fa-plus"></i> ${text('新增')}</a>
+					<a href="#" class="btn btn-default" id="btnDelete"><i class="fa fa-trash-o"></i> ${text('删除')}</a>
+				//# }
+				<button type="button" class="btn" id="btnRefresh" title="${text('刷新')}"><i class="fa fa-refresh"></i>刷新</button>
+			</div>
+		</div>
+		<div class="box-body">
+			<#form:form id="searchForm" model="${mobileRoleFunc}" action="${ctx}/mobile/mobileRoleFunc/listData" method="post" class="form-inline"
+					data-page-no="${parameter.pageNo}" data-page-size="${parameter.pageSize}" data-order-by="${parameter.orderBy}">
+
+				//# if (mobileRoleFunc.funcId==null || mobileRoleFunc.funcId=='') {
+				<div class="form-group">
+					<label class="control-label">${text('功能')}：</label>
+					<div class="control-inline width-160">
+						<#form:treeselect title="${text('功能')}"
+						path="funcId" labelPath="funcTitle"
+						url="${ctx}/mobile/mobileFunc/treeData"
+						class="form-control isQuick" allowClear="true" canSelectRoot="false" canSelectParent="false"/>
+					</div>
+				</div>
+				//# } else {
+					<#form:hidden path="funcId"/>
+				//# }
+
+				<div class="form-group">
+					<label class="control-label">${text('角色')}：</label>
+					<div class="control-inline width-160">
+						<#form:treeselect title="${text('角色')}"
+						path="roleId" labelPath="roleName"
+						url="${ctx}/basic/sys/role/treeData"
+						class="form-control isQuick" allowClear="true" canSelectRoot="false" canSelectParent="false"/>
+					</div>
+				</div>
+
+			</#form:form>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+		</div>
+	</div>
+</div>
+<% } %>
+<script>
+
+	$('#btnRefresh').click(function(){
+		$('#dataGrid').dataGrid('refresh');
+	});
+
+	//# if(hasPermi('mobile:mobileRoleFunc:edit')){
+	$('#btnDelete').click(function(){
+		var ids=$('#dataGrid').dataGrid('getSelectRows');
+		if (ids==undefined || ids=='') {
+			js.showErrorMessage("${text('请选择需要删除的角色功能')}");
+			return;
+		}
+
+		let data={ids:ids.join(',')};
+
+		js.confirm(
+				'确认删除选择的<span style="color:red;font-size: 16px">'+ids.length+'条</span>角色功能吗？',
+				'${ctx}/mobile/mobileRoleFunc/deletes',
+				data,
+				function(data){
+					js.showMessage(data.message);
+					page();
+				},
+				'json',
+				true,
+				'正在删除角色功能...'
+		);
+
+	});
+	//# }
+
+// 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	showRownum:false,
+	showCheckbox:true,
+	columnModel: [
+		{header:'${text("功能")}', name:'funcTitle', index:'', width:200, align:"left"},
+		{header:'${text("角色")}', name:'roleName', index:'', width:150, align:"left"},
+		{header:'${text("类别")}', name:'funcCate', index:'', width:150, align:"left", formatter: function(val, obj, row, act){
+				return js.getDictLabel(${@DictUtils.getDictListJson('mobile_func_cate')}, val, '${text("未知")}', true);
+			}},
+		{header:'${text("操作")}', name:'actions', width:80, formatter: function(val, obj, row, act){
+			var actions = [];
+			//# if(hasPermi('mobile:mobileRoleFunc:edit')){
+				actions.push('<a href="${ctx}/mobile/mobileRoleFunc/delete?id='+row.id+'" class="btnList" title="${text("删除角色功能")}" data-confirm="${text("确认要删除该角色功能吗？")}"><i class="fa fa-trash-o"></i>删除</a>&nbsp;');
+			//#  }
+			return actions.join('');
+		}}
+	],
+	// 加载成功后执行事件
+	ajaxSuccess: function(data){
+		
+	}
+});
+</script>

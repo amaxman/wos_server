@@ -15,6 +15,7 @@
 
     <modules>
         <module>dao-basic</module>
+        <module>dao-work</module>
     </modules>
 
     <properties>

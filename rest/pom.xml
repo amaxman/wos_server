@@ -13,6 +13,11 @@
     <packaging>pom</packaging>
     <name>Rest</name>
 
+    <modules>
+        <module>rest-basic</module>
+        <module>rest-work</module>
+    </modules>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>

@@ -15,6 +15,7 @@
 
     <modules>
         <module>view-basic</module>
+        <module>view-work</module>
     </modules>
 
     <properties>

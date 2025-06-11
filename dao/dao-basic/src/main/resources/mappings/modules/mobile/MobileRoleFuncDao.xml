@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="wos.server.dao.mobile.MobileRoleFuncDao">
+	
+	<select id="findList" resultType="MobileRoleFunc">
+		SELECT ${sqlMap.column.toSql()},tb_mobile_func.func_title,tb_mobile_func.func_cate
+		FROM ${sqlMap.table.toSql()}
+		LEFT JOIN tb_mobile_func ON tb_mobile_func.id = a.func_id
+		<where>
+			${sqlMap.where.toSql()}
+		</where>
+		ORDER BY tb_mobile_func.func_cate,tb_mobile_func.order_num
+	</select>
+	
+</mapper>

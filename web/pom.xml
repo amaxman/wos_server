@@ -32,7 +32,7 @@
 
         <dependency>
             <groupId>wos.server</groupId>
-            <artifactId>view-basic</artifactId>
+            <artifactId>view-work</artifactId>
             <version>1.0</version>
         </dependency>
 
