@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.jeesite.common.config.Global;
 import com.jeesite.common.entity.Page;
 import com.jeesite.common.web.BaseController;
+import wos.server.entity.work.WorkOrder;
 import wos.server.entity.work.WorkOrderStaff;
+import wos.server.service.work.WorkOrderService;
 import wos.server.service.work.WorkOrderStaffService;
 import wos.server.view.BasicController;
 
@@ -40,6 +42,9 @@ public class WorkOrderStaffController extends BasicController {
 
 	@Autowired
 	private WorkOrderStaffService workOrderStaffService;
+
+	@Autowired
+	private WorkOrderService workOrderService;
 
 	@Autowired
 	private UserService userService;
@@ -111,6 +116,8 @@ public class WorkOrderStaffController extends BasicController {
 					workOrderStaff.setStaffName(user.getUserName());
 				}
 			}
+		} else {
+			workOrderStaff.setWorkProgress(0);
 		}
 		return "modules/work_order/workOrderStaffForm";
 	}
@@ -132,6 +139,19 @@ public class WorkOrderStaffController extends BasicController {
 		if (!workOrderStaffService.allow2Saved(workOrderStaff.getId(),woId,staffId)) {
 			return renderResultError("不允许保存，可能该员工已经被指定至该工单");
 		}
+		WorkOrder workOrder=workOrderService.get(woId);
+		if (workOrder==null) {
+			return renderResultError("工单不存在，可能已经被删除");
+		}
+		String cateCode=workOrder.getCateCode();
+		if (StringUtils.isNotEmpty(cateCode)
+				&& workOrderStaff.getWorkProgress()!=null
+				&& workOrderStaff.getWorkProgress()!=100
+				&& workOrderStaff.getWorkProgress()!=0
+				&& StringUtils.equalsIgnoreCase(cateCode,"yes_no")) {
+			return renderResultError("工单类型仅允许输入0或100");
+		}
+
 		workOrderStaffService.save(workOrderStaff);
 		return renderResult(Global.TRUE, text("保存工单执行人成功！"));
 	}

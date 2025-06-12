@@ -27,8 +27,7 @@ public class MobileFunc extends DataEntity<MobileFunc> {
 	private Integer orderNum;		// 排序号
 	private String funcTitle;		// 标题
 	private String funcCode;		// 功能码
-	private String funcCate;		// 功能类别
-	
+
 	public MobileFunc() {
 		this(null);
 	}
@@ -61,15 +60,6 @@ public class MobileFunc extends DataEntity<MobileFunc> {
 
 	public void setFuncCode(String funcCode) {
 		this.funcCode = funcCode;
-	}
-	
-	@Size(min=0, max=64, message="功能类别长度不能超过 64 个字符")
-	public String getFuncCate() {
-		return funcCate;
-	}
-
-	public void setFuncCate(String funcCate) {
-		this.funcCate = funcCate;
 	}
 
 	/**

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>wos.server</groupId>
-        <artifactId>rest</artifactId>
+        <artifactId>service</artifactId>
         <version>1.0</version>
     </parent>
     <artifactId>service-work</artifactId>

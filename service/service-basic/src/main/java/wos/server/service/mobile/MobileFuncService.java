@@ -155,11 +155,10 @@ public class MobileFuncService extends CrudServiceEx<MobileFuncDao, MobileFunc> 
 	 */
 	public boolean checkFunCode(MobileFunc mobileFunc) {
 		if (mobileFunc==null) return false;
-		if (StringUtils.isEmpty(mobileFunc.getFuncCate()) || StringUtils.isEmpty(mobileFunc.getFuncCode())) return false;
+		if (StringUtils.isEmpty(mobileFunc.getFuncCode())) return false;
 		MobileFunc where=new MobileFunc();
 		Page<MobileFunc> page=new Page<>(1,1);
 		where.setPage(page);
-		where.setFuncCate(mobileFunc.getFuncCate());
 		where.setFuncCode(mobileFunc.getFuncCode());
 		if (StringUtils.isNotEmpty(mobileFunc.getId())) where.sqlMap().getWhere().and("id", QueryType.NE,mobileFunc.getId());
 		List<MobileFunc> list=dao.findList(where);
@@ -170,14 +169,12 @@ public class MobileFuncService extends CrudServiceEx<MobileFuncDao, MobileFunc> 
 
 	/**
 	 * 根据角色列表获取功能列表
-	 * @param factId
 	 * @param roleCodeList
-	 * @param funcCate
 	 * @return
 	 */
-	public List<MobileFunc> getListByRoleCodeList(String factId,List<String> roleCodeList,String funcCate) {
+	public List<MobileFunc> getListByRoleCodeList(List<String> roleCodeList) {
 		//#region 参数校验
-		if (StringUtils.isEmpty(factId) || roleCodeList==null || roleCodeList.isEmpty()) return new ArrayList<>();
+		if (roleCodeList==null || roleCodeList.isEmpty()) return new ArrayList<>();
 		//#endregion
 
 		//#region 获取功能角色
@@ -190,7 +187,6 @@ public class MobileFuncService extends CrudServiceEx<MobileFuncDao, MobileFunc> 
 		//#region 获取功能列表
 		List<String> funcIdList=mobileRoleFuncList.stream().map(p->p.getFuncId()).distinct().collect(Collectors.toList());
 		MobileFunc where=new MobileFunc();
-		where.setFuncCate(funcCate);
 		where.sqlMap().getWhere().and("id",QueryType.IN,funcIdList);
 		return dao.findList(where);
 		//#endregion

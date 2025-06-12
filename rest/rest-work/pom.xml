@@ -25,5 +25,11 @@
             <version>${version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>wos.server</groupId>
+            <artifactId>service-work</artifactId>
+            <version>${version}</version>
+        </dependency>
+
     </dependencies>
 </project>
