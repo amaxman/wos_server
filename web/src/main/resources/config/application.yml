@@ -591,7 +591,7 @@ error:
 # 文件上传
 file:
   enabled: true
-  baseDir: /Users/tyrtao/tools/xf
+  baseDir: /Users/tyrtao/tools/wos
   #  baseDir: /Users/tyrtao/tools/upload
   fileAllowSuffixes: .doc,.docx,.rtf,.xls,.xlsx,.csv,.ppt,.pptx,.pdf,.vsd,.txt,.md,.xml,.rar,.zip,.7z,.tar,.tgz,.jar,.gz,.gzip,.bz2,.cab,.iso,.ipa,.apk,.drl,
 
