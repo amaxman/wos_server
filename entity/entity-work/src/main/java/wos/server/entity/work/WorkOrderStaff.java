@@ -61,5 +61,14 @@ public class WorkOrderStaff extends DataEntity<WorkOrderStaff> {
 	public void setWorkProgress(Long workProgress) {
 		this.workProgress = workProgress;
 	}
-	
+
+	private String staffName;
+
+	public String getStaffName() {
+		return staffName;
+	}
+
+	public void setStaffName(String staffName) {
+		this.staffName = staffName;
+	}
 }

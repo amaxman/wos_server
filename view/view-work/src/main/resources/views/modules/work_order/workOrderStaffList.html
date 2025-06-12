@@ -6,46 +6,22 @@
 				<i class="fa icon-notebook"></i> ${text('工单执行人管理')}
 			</div>
 			<div class="box-tools pull-right">
-				<a href="#" class="btn btn-default" id="btnSearch" title="${text('查询')}"><i class="fa fa-filter"></i> ${text('查询')}</a>
 				<% if(hasPermi('work_order:workOrderStaff:edit')){ %>
-					<a href="${ctx}/work_order/workOrderStaff/form" class="btn btn-default btnTool" title="${text('新增工单执行人')}"><i class="fa fa-plus"></i> ${text('新增')}</a>
+					<a href="${ctx}/work_order/workOrderStaff/form?woId=${workOrderStaff.woId}" class="btn btn-default btnTool" title="${text('新增工单执行人')}"><i class="fa fa-plus"></i> ${text('新增')}</a>
+					<a href="#" class="btn btn-default" id="btnDeletes"><i class="fa fa-trash-o"></i> ${text('批量删除')}</a>
 				<% } %>
-				<a href="#" class="btn btn-default" id="btnSetting" title="${text('设置')}"><i class="fa fa-navicon"></i></a>
 			</div>
 		</div>
 		<div class="box-body">
-			<#form:form id="searchForm" model="${workOrderStaff}" action="${ctx}/work_order/workOrderStaff/listData" method="post" class="form-inline hide"
+			<#form:form id="searchForm" model="${workOrderStaff}" action="${ctx}/work_order/workOrderStaff/listData" method="post" class="form-inline"
 					data-page-no="${parameter.pageNo}" data-page-size="${parameter.pageSize}" data-order-by="${parameter.orderBy}">
-				<div class="form-group">
-					<label class="control-label">${text('工单标识')}：</label>
-					<div class="control-inline">
-						<#form:input path="woId" maxlength="64" class="form-control width-120"/>
-					</div>
-				</div>
+				<#form:hidden path="woId"/>
 				<div class="form-group">
 					<label class="control-label">${text('执行人')}：</label>
-					<div class="control-inline width-120" >
-						<#form:treeselect id="staffId" title="${text('用户选择')}"
+					<div class="control-inline width-160" >
+						<#form:treeselect id="staffId" title="${text('用户选择')}" class="isQuick"
 							path="staffId" labelPath="" 
-							url="${ctx}/sys/office/treeData?isLoadUser=true" allowClear="true"/>
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="control-label">${text('进度')}：</label>
-					<div class="control-inline">
-						<#form:input path="workProgress" class="form-control width-120"/>
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="control-label">${text('状态')}：</label>
-					<div class="control-inline width-120">
-						<#form:select path="status" dictType="sys_search_status" blankOption="true" class="form-control isQuick"/>
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="control-label">${text('备注信息')}：</label>
-					<div class="control-inline">
-						<#form:input path="remarks" maxlength="500" class="form-control width-120"/>
+							url="${ctx}/sys/office/treeData?isLoadUser=true&isAll=true" allowClear="true"/>
 					</div>
 				</div>
 				<div class="form-group">
@@ -60,25 +36,56 @@
 </div>
 <% } %>
 <script>
+	//# if(hasPermi('work_order:workOrderStaff:edit')){
+	$('#btnDeletes').click(function(){
+		var ids=$('#dataGrid').dataGrid('getSelectRows');
+		if (ids==undefined || ids=='') {
+			js.showErrorMessage("${text('请选择需要删除的执行人')}");
+			return;
+		}
+
+		let data={ids:ids.join(',')};
+
+		js.confirm(
+				'确认删除选中执行人吗？',
+				'${ctx}/work_order/workOrderStaff/deletes',
+				data,
+				function(data){
+					js.showMessage(data.message);
+					page();
+				},
+				'json',
+				true,
+				'正在删除移动端功能码...'
+		);
+
+	});
+
+
+	//# }
 //# // 初始化DataGrid对象
 $('#dataGrid').dataGrid({
 	searchForm: $("#searchForm"),
+	showRownum:false,
+	showCheckbox:true,
+	autoGridWidth:false,
 	columnModel: [
-		{header:'${text("工单标识")}', name:'woId', index:'a.wo_id', width:150, align:"left", frozen:true, formatter: function(val, obj, row, act){
-			return '<a href="${ctx}/work_order/workOrderStaff/form?id='+row.id+'" class="btnList" data-title="${text("编辑工单执行人")}">'+(val||row.id)+'</a>';
-		}},
-		{header:'${text("执行人")}', name:'', index:'a.staff_id', width:150, align:"center"},
-		{header:'${text("进度")}', name:'workProgress', index:'a.work_progress', width:150, align:"center"},
-		{header:'${text("状态")}', name:'status', index:'a.status', width:150, align:"center", formatter: function(val, obj, row, act){
-			return js.getDictLabel("#{@DictUtils.getDictListJson('sys_search_status')}", val, '${text("未知")}', true);
-		}},
+		{header:'${text("执行人")}', name:'staffName', width:200, align:"center", frozen:true, formatter: function(val, obj, row, act){
+				return '<a href="${ctx}/work_order/workOrderStaff/form?id='+row.id+'" class="btnList" data-title="${text("编辑工单执行人")}">'+(val||row.id)+'</a>';
+			}},
+		{header:'${text("进度")}', name:'workProgress', index:'a.work_progress', width:80, align:"center",formatter: function(val, obj, row, act){
+				if (val==null || val==undefined || val=='' || val==0 || val=='0') return '未开始';
+				if (val<0 || val>100) return '进度错误';
+				if (val==100) return '<div class="text-gray">已完成</div>';
+				return val+'%';
+			}},
 		{header:'${text("更新时间")}', name:'updateDate', index:'a.update_date', width:150, align:"center"},
 		{header:'${text("备注信息")}', name:'remarks', index:'a.remarks', width:150, align:"left"},
 		{header:'${text("操作")}', name:'actions', width:120, formatter: function(val, obj, row, act){
 			var actions = [];
 			//# if(hasPermi('work_order:workOrderStaff:edit')){
-				actions.push('<a href="${ctx}/work_order/workOrderStaff/form?id='+row.id+'" class="btnList" title="${text("编辑工单执行人")}"><i class="fa fa-pencil"></i></a>&nbsp;');
-				actions.push('<a href="${ctx}/work_order/workOrderStaff/delete?id='+row.id+'" class="btnList" title="${text("删除工单执行人")}" data-confirm="${text("确认要删除该工单执行人吗？")}"><i class="fa fa-trash-o"></i></a>&nbsp;');
+				actions.push('<a href="${ctx}/work_order/workOrderStaff/form?id='+row.id+'" class="btnList" title="${text("编辑执行人")}"><i class="fa fa-pencil"></i>编辑</a>&nbsp;');
+				actions.push('<a href="${ctx}/work_order/workOrderStaff/delete?id='+row.id+'" class="btnList" title="${text("删除工单执行人")}" data-confirm="${text("确认要删除该工单执行人吗？")}"><i class="fa fa-trash-o"></i>删除</a>&nbsp;');
 			//# }
 			return actions.join('');
 		}}

@@ -6,15 +6,14 @@
 				<i class="fa icon-notebook"></i> ${text('工单管理')}
 			</div>
 			<div class="box-tools pull-right">
-				<a href="#" class="btn btn-default" id="btnSearch" title="${text('查询')}"><i class="fa fa-filter"></i> ${text('查询')}</a>
 				<% if(hasPermi('work_order:workOrder:edit')){ %>
 					<a href="${ctx}/work_order/workOrder/form" class="btn btn-default btnTool" title="${text('新增工单')}"><i class="fa fa-plus"></i> ${text('新增')}</a>
+					<a href="#" class="btn btn-default" id="btnDeletes"><i class="fa fa-trash-o"></i> ${text('批量删除')}</a>
 				<% } %>
-				<a href="#" class="btn btn-default" id="btnSetting" title="${text('设置')}"><i class="fa fa-navicon"></i></a>
 			</div>
 		</div>
 		<div class="box-body">
-			<#form:form id="searchForm" model="${workOrder}" action="${ctx}/work_order/workOrder/listData" method="post" class="form-inline hide"
+			<#form:form id="searchForm" model="${workOrder}" action="${ctx}/work_order/workOrder/listData" method="post" class="form-inline"
 					data-page-no="${parameter.pageNo}" data-page-size="${parameter.pageSize}" data-order-by="${parameter.orderBy}">
 				<div class="form-group">
 					<label class="control-label">${text('标题')}：</label>
@@ -31,39 +30,11 @@
 				<div class="form-group">
 					<label class="control-label">${text('开始时间')}：</label>
 					<div class="control-inline">
-						<#form:input path="startTime" readonly="true" maxlength="20" class="form-control laydate width-datetime"
-							dataFormat="datetime" data-type="datetime" data-format="yyyy-MM-dd HH:mm"/>
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="control-label">${text('结束时间')}：</label>
-					<div class="control-inline">
-						<#form:input path="endTime" readonly="true" maxlength="20" class="form-control laydate width-datetime"
-							dataFormat="datetime" data-type="datetime" data-format="yyyy-MM-dd HH:mm"/>
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="control-label">${text('类别')}：</label>
-					<div class="control-inline width-120">
-						<#form:select path="cateCode" dictType="work_order_cate" blankOption="true" class="form-control"/>
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="control-label">${text('级别')}：</label>
-					<div class="control-inline width-120">
-						<#form:select path="levelCode" dictType="work_order_level" blankOption="true" class="form-control"/>
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="control-label">${text('状态')}：</label>
-					<div class="control-inline width-120">
-						<#form:select path="status" dictType="sys_search_status" blankOption="true" class="form-control isQuick"/>
-					</div>
-				</div>
-				<div class="form-group">
-					<label class="control-label">${text('备注信息')}：</label>
-					<div class="control-inline">
-						<#form:input path="remarks" maxlength="500" class="form-control width-120"/>
+						<#form:input path="startTime_gte" readonly="true" maxlength="20" class="form-control laydate width-datetime"
+						dataFormat="datetime" data-type="datetime" data-format="yyyy-MM-dd HH:mm"/>
+						-
+						<#form:input path="startTime_lte" readonly="true" maxlength="20" class="form-control laydate width-datetime"
+						dataFormat="datetime" data-type="datetime" data-format="yyyy-MM-dd HH:mm"/>
 					</div>
 				</div>
 				<div class="form-group">
@@ -78,9 +49,38 @@
 </div>
 <% } %>
 <script>
+	//# if(hasPermi('work_order:workOrder:edit')){
+	$('#btnDeletes').click(function(){
+		var ids=$('#dataGrid').dataGrid('getSelectRows');
+		if (ids==undefined || ids=='') {
+			js.showErrorMessage("${text('请选择需要删除的工单')}");
+			return;
+		}
+
+		let data={ids:ids.join(',')};
+
+		js.confirm(
+				'确认删除选中工单吗？',
+				'${ctx}/work_order/workOrder/deletes',
+				data,
+				function(data){
+					js.showMessage(data.message);
+					page();
+				},
+				'json',
+				true,
+				'正在删除移动端功能码...'
+		);
+
+	});
+
+
+	//# }
 //# // 初始化DataGrid对象
 $('#dataGrid').dataGrid({
 	searchForm: $("#searchForm"),
+	showRownum:false,
+	showCheckbox:true,
 	columnModel: [
 		{header:'${text("标题")}', name:'title', index:'a.title', width:150, align:"left", frozen:true, formatter: function(val, obj, row, act){
 			return '<a href="${ctx}/work_order/workOrder/form?id='+row.id+'" class="btnList" data-title="${text("编辑工单")}">'+(val||row.id)+'</a>';
@@ -89,21 +89,23 @@ $('#dataGrid').dataGrid({
 		{header:'${text("开始时间")}', name:'startTime', index:'a.start_time', width:150, align:"center"},
 		{header:'${text("结束时间")}', name:'endTime', index:'a.end_time', width:150, align:"center"},
 		{header:'${text("类别")}', name:'cateCode', index:'a.cate_code', width:150, align:"center", formatter: function(val, obj, row, act){
+			if (val==undefined || val==null || val=='') return '';
 			return js.getDictLabel("#{@DictUtils.getDictListJson('work_order_cate')}", val, '${text("未知")}', true);
 		}},
 		{header:'${text("级别")}', name:'levelCode', index:'a.level_code', width:150, align:"center", formatter: function(val, obj, row, act){
+			if (val==undefined || val==null || val=='') return '';
 			return js.getDictLabel("#{@DictUtils.getDictListJson('work_order_level')}", val, '${text("未知")}', true);
-		}},
-		{header:'${text("状态")}', name:'status', index:'a.status', width:150, align:"center", formatter: function(val, obj, row, act){
-			return js.getDictLabel("#{@DictUtils.getDictListJson('sys_search_status')}", val, '${text("未知")}', true);
 		}},
 		{header:'${text("更新时间")}', name:'updateDate', index:'a.update_date', width:150, align:"center"},
 		{header:'${text("备注信息")}', name:'remarks', index:'a.remarks', width:150, align:"left"},
-		{header:'${text("操作")}', name:'actions', width:120, formatter: function(val, obj, row, act){
+		{header:'${text("操作")}', name:'actions', width:180, formatter: function(val, obj, row, act){
 			var actions = [];
 			//# if(hasPermi('work_order:workOrder:edit')){
-				actions.push('<a href="${ctx}/work_order/workOrder/form?id='+row.id+'" class="btnList" title="${text("编辑工单")}"><i class="fa fa-pencil"></i></a>&nbsp;');
-				actions.push('<a href="${ctx}/work_order/workOrder/delete?id='+row.id+'" class="btnList" title="${text("删除工单")}" data-confirm="${text("确认要删除该工单吗？")}"><i class="fa fa-trash-o"></i></a>&nbsp;');
+				actions.push('<a href="${ctx}/work_order/workOrder/form?id='+row.id+'" class="btnList" title="${text("编辑工单")}"><i class="fa fa-pencil"></i>编辑</a>&nbsp;');
+				actions.push('<a href="${ctx}/work_order/workOrder/delete?id='+row.id+'" class="btnList" title="${text("删除工单")}" data-confirm="${text("确认要删除该工单吗？")}"><i class="fa fa-trash-o"></i>删除</a>&nbsp;');
+			//# }
+			//# if(hasPermi('work_order:workOrderStaff:view')){
+				actions.push('<a href="${ctx}/work_order/workOrderStaff/list?woId='+row.id+'" class="btnList" title="${text("执行人")}"><i class="fa fa-users"></i>执行人</a>&nbsp;');
 			//# }
 			return actions.join('');
 		}}

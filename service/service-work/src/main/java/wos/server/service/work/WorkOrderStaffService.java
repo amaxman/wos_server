@@ -1,6 +1,10 @@
 package wos.server.service.work;
 
 import java.util.List;
+
+import com.jeesite.common.collect.ListUtils;
+import com.jeesite.common.lang.StringUtils;
+import com.jeesite.common.mybatis.mapper.query.QueryType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,7 +79,33 @@ public class WorkOrderStaffService extends CrudService<WorkOrderStaffDao, WorkOr
 	@Override
 	@Transactional
 	public void delete(WorkOrderStaff workOrderStaff) {
-		super.delete(workOrderStaff);
+		dao.phyDelete(workOrderStaff);
+	}
+
+	@Transactional
+	public void deleteByIdList(String compId,List<String> idList) {
+		if (ListUtils.isEmpty(idList) || StringUtils.isEmpty(compId)) return;
+
+		WorkOrderStaff where=new WorkOrderStaff();
+		where.sqlMap().getWhere().and("id", QueryType.IN,idList);
+		dao.phyDeleteByEntity(where);
+	}
+
+	/**
+	 * 判定是否允许保存
+	 * @param id
+	 * @param woId
+	 * @param staffId
+	 * @return
+	 */
+	public boolean allow2Saved(String id,String woId,String staffId) {
+		if (StringUtils.isEmpty(woId) || StringUtils.isEmpty(staffId)) return false;
+		WorkOrderStaff where=new WorkOrderStaff();
+		where.setWoId(woId);
+		where.setStaffId(staffId);
+		if (StringUtils.isNotEmpty(id)) where.sqlMap().getWhere().and("id",QueryType.NE,id);
+		List<WorkOrderStaff> list=dao.findList(where);
+		return list==null || list.isEmpty();
 	}
 	
 }

@@ -1,4 +1,5 @@
 <% layout('/layouts/default.html', {title: '工单执行人管理', libs: ['validate']}){ %>
+<link rel="stylesheet" type="text/css" href="${ctxStatic}/cloud.css?v1.0">
 <div class="main-content">
 	<div class="box box-main">
 		<div class="box-header with-border">
@@ -6,35 +7,37 @@
 				<i class="fa icon-note"></i> ${text(workOrderStaff.isNewRecord ? '新增工单执行人' : '编辑工单执行人')}
 			</div>
 			<div class="box-tools pull-right hide">
-				<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
 			</div>
 		</div>
 		<#form:form id="inputForm" model="${workOrderStaff}" action="${ctx}/work_order/workOrderStaff/save" method="post" class="form-horizontal">
 			<div class="box-body">
-				<div class="form-unit">${text('基本信息')}</div>
 				<#form:hidden path="id"/>
+				<#form:hidden path="woId"/>
 				<div class="row">
-					<div class="col-xs-6">
-						<div class="form-group">
-							<label class="control-label col-sm-4" title="">
-								<span class="required ">*</span> ${text('工单标识')}：<i class="fa icon-question hide"></i></label>
-							<div class="col-sm-8">
-								<#form:input path="woId" maxlength="64" class="form-control required"/>
-							</div>
-						</div>
-					</div>
+					//# if (workOrderStaff.isNewRecord) {
 					<div class="col-xs-6">
 						<div class="form-group">
 							<label class="control-label col-sm-4" title="">
 								<span class="required hide">*</span> ${text('执行人')}：<i class="fa icon-question hide"></i></label>
 							<div class="col-sm-8">
 								<#form:treeselect id="staffId" title="${text('用户选择')}"
-									path="staffId" labelPath=""
-									url="${ctx}/sys/office/treeData?isLoadUser=true"
+									path="staffId" labelPath="staffName"
+									url="${ctx}/sys/office/treeData?isLoadUser=true&isAll=true"
 									class="" allowClear="true"/>
 							</div>
 						</div>
 					</div>
+					//# } else {
+					<div class="col-xs-6">
+						<div class="form-group">
+							<label class="control-label col-sm-4" title="">
+								<span class="required hide">*</span> ${text('执行人')}：<i class="fa icon-question hide"></i></label>
+							<div class="col-sm-8 no-border">
+								${workOrderStaff.staffName}
+							</div>
+						</div>
+					</div>
+					//# }
 					<div class="col-xs-6">
 						<div class="form-group">
 							<label class="control-label col-sm-4" title="">

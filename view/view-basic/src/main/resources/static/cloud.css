@@ -1,6 +1,7 @@
 .no-border {
-    font-weight:400 !important;
-    border: none !important;
+    font-weight:400;
+    border: none;
+    padding-top: 5px
 }
 .data_split {
     background: GhostWhite;

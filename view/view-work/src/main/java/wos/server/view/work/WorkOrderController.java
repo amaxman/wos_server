@@ -3,6 +3,8 @@ package wos.server.view.work;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.jeesite.common.lang.DateUtils;
+import com.jeesite.common.lang.StringUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,6 +20,11 @@ import com.jeesite.common.entity.Page;
 import com.jeesite.common.web.BaseController;
 import wos.server.entity.work.WorkOrder;
 import wos.server.service.work.WorkOrderService;
+import wos.server.view.BasicController;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 工单Controller
@@ -26,7 +33,7 @@ import wos.server.service.work.WorkOrderService;
  */
 @Controller
 @RequestMapping(value = "${adminPath}/work_order/workOrder")
-public class WorkOrderController extends BaseController {
+public class WorkOrderController extends BasicController {
 
 	@Autowired
 	private WorkOrderService workOrderService;
@@ -46,6 +53,7 @@ public class WorkOrderController extends BaseController {
 	@RequestMapping(value = {"list", ""})
 	public String list(WorkOrder workOrder, Model model) {
 		model.addAttribute("workOrder", workOrder);
+		workOrder.setStartTime_gte(DateUtils.getOfDayFirst(DateUtils.addWeeks(new Date(),-1)));
 		return "modules/work_order/workOrderList";
 	}
 	
@@ -68,6 +76,9 @@ public class WorkOrderController extends BaseController {
 	@RequestMapping(value = "form")
 	public String form(WorkOrder workOrder, Model model) {
 		model.addAttribute("workOrder", workOrder);
+		if (workOrder.getIsNewRecord()) {
+			workOrder.setStartTime(new Date());
+		}
 		return "modules/work_order/workOrderForm";
 	}
 
@@ -91,6 +102,17 @@ public class WorkOrderController extends BaseController {
 	public String delete(WorkOrder workOrder) {
 		workOrderService.delete(workOrder);
 		return renderResult(Global.TRUE, text("删除工单成功！"));
+	}
+
+	@RequiresPermissions("work_order:workOrder:edit")
+	@RequestMapping(value = "deletes")
+	@ResponseBody
+	public String deletes(String ids) {
+		if (StringUtils.isEmpty(ids)) return renderResultError("批量删除失败，标识不允许为空！");
+		List<String> idList= Arrays.asList(ids.split(","));
+		if (idList.isEmpty()) return renderResultError("需要删除的标识异常");
+		workOrderService.deleteByIdList(getCompId(),idList);
+		return renderResultSuccess("删除成功");
 	}
 	
 }

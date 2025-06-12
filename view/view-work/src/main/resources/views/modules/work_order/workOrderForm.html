@@ -6,12 +6,10 @@
 				<i class="fa icon-note"></i> ${text(workOrder.isNewRecord ? '新增工单' : '编辑工单')}
 			</div>
 			<div class="box-tools pull-right hide">
-				<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
 			</div>
 		</div>
 		<#form:form id="inputForm" model="${workOrder}" action="${ctx}/work_order/workOrder/save" method="post" class="form-horizontal">
 			<div class="box-body">
-				<div class="form-unit">${text('基本信息')}</div>
 				<#form:hidden path="id"/>
 				<div class="row">
 					<div class="col-xs-6">
@@ -39,9 +37,9 @@
 					<div class="col-xs-6">
 						<div class="form-group">
 							<label class="control-label col-sm-4" title="">
-								<span class="required hide">*</span> ${text('开始时间')}：<i class="fa icon-question hide"></i></label>
+								<span class="required">*</span> ${text('开始时间')}：<i class="fa icon-question hide"></i></label>
 							<div class="col-sm-8">
-								<#form:input path="startTime" readonly="true" maxlength="20" class="form-control laydate"
+								<#form:input path="startTime" readonly="true" maxlength="20" class="form-control laydate required"
 									dataFormat="datetime" data-type="datetime" data-format="yyyy-MM-dd HH:mm"/>
 							</div>
 						</div>
@@ -59,9 +57,9 @@
 					<div class="col-xs-6">
 						<div class="form-group">
 							<label class="control-label col-sm-4" title="">
-								<span class="required hide">*</span> ${text('类别')}：<i class="fa icon-question hide"></i></label>
+								<span class="required">*</span> ${text('类别')}：<i class="fa icon-question hide"></i></label>
 							<div class="col-sm-8">
-								<#form:select path="cateCode" dictType="work_order_cate" blankOption="true" class="form-control" />
+								<#form:select path="cateCode" dictType="work_order_cate" blankOption="true" class="form-control required" />
 							</div>
 						</div>
 					</div>

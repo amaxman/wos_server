@@ -6,6 +6,7 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import com.jeesite.common.entity.DataEntity;
+import com.jeesite.common.lang.DateUtils;
 import com.jeesite.common.mybatis.annotation.Column;
 import com.jeesite.common.mybatis.annotation.Table;
 import com.jeesite.common.mybatis.mapper.query.QueryType;
@@ -18,7 +19,7 @@ import com.jeesite.common.mybatis.mapper.query.QueryType;
 @Table(name="tb_work_order", alias="a", label="工单信息", columns={
 		@Column(name="id", attrName="id", label="编号", isPK=true),
 		@Column(name="title", attrName="title", label="标题", queryType=QueryType.LIKE),
-		@Column(name="content", attrName="content", label="内容"),
+		@Column(name="content", attrName="content", label="内容", queryType=QueryType.LIKE),
 		@Column(name="start_time", attrName="startTime", label="开始时间", isUpdateForce=true),
 		@Column(name="end_time", attrName="endTime", label="结束时间", isUpdateForce=true),
 		@Column(name="cate_code", attrName="cateCode", label="类别"),
@@ -96,5 +97,25 @@ public class WorkOrder extends DataEntity<WorkOrder> {
 	public void setLevelCode(String levelCode) {
 		this.levelCode = levelCode;
 	}
+
+	//#region 查询
+
+	public Date getStartTime_gte() {
+		return sqlMap.getWhere().getValue("start_time", QueryType.GTE);
+	}
+
+	public void setStartTime_gte(Date startTime) {
+		sqlMap.getWhere().and("start_time", QueryType.GTE, DateUtils.getOfDayFirst(startTime));
+	}
+
+	public Date geStartTime_lte() {
+		return sqlMap.getWhere().getValue("start_time", QueryType.LTE);
+	}
+
+	public void setStartTime_lte(Date startTime) {
+		sqlMap.getWhere().and("start_time", QueryType.LTE, DateUtils.getOfDayLast(startTime));
+	}
+
+	//#endregion
 	
 }

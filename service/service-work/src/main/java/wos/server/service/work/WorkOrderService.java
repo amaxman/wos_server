@@ -1,14 +1,23 @@
 package wos.server.service.work;
 
 import java.util.List;
+
+import com.jeesite.common.collect.ListUtils;
+import com.jeesite.common.lang.StringUtils;
+import com.jeesite.common.mybatis.mapper.query.QueryType;
+import com.jeesite.common.service.CrudServiceEx;
+import com.jeesite.modules.file.entity.FileUpload;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jeesite.common.entity.Page;
 import com.jeesite.common.service.CrudService;
+import wos.server.dao.work.WorkOrderStaffDao;
 import wos.server.entity.work.WorkOrder;
 import wos.server.dao.work.WorkOrderDao;
 import com.jeesite.modules.file.utils.FileUploadUtils;
+import wos.server.entity.work.WorkOrderStaff;
 
 /**
  * 工单Service
@@ -16,7 +25,12 @@ import com.jeesite.modules.file.utils.FileUploadUtils;
  * @version 2025-06-11
  */
 @Service
-public class WorkOrderService extends CrudService<WorkOrderDao, WorkOrder> {
+public class WorkOrderService extends CrudServiceEx<WorkOrderDao, WorkOrder> {
+
+	@Autowired
+	private WorkOrderStaffDao workOrderStaffDao;
+
+	private final String bizType="workOrder_image";
 	
 	/**
 	 * 获取单条数据
@@ -59,6 +73,7 @@ public class WorkOrderService extends CrudService<WorkOrderDao, WorkOrder> {
 		super.save(workOrder);
 		// 保存上传图片
 		FileUploadUtils.saveFileUpload(workOrder, workOrder.getId(), "workOrder_image");
+		deleteRemovedFile(workOrder.getId(), bizType);	//删除已经删除的文件
 	}
 	
 	/**
@@ -78,7 +93,39 @@ public class WorkOrderService extends CrudService<WorkOrderDao, WorkOrder> {
 	@Override
 	@Transactional
 	public void delete(WorkOrder workOrder) {
-		super.delete(workOrder);
+		if (StringUtils.isNotEmpty(workOrder.getId())) {
+			WorkOrderStaff workOrderStaff=new WorkOrderStaff();
+			workOrderStaff.setWoId(workOrder.getId());
+			workOrderStaffDao.phyDeleteByEntity(workOrderStaff);
+		}
+
+		List<FileUpload> fileUploadList=FileUploadUtils.findFileUpload(workOrder.getId(),bizType);
+		deleteFileUpload(fileUploadList);
+
+		dao.phyDelete(workOrder);
+	}
+
+	@Transactional
+	public void deleteByIdList(String compId,List<String> idList) {
+		if (ListUtils.isEmpty(idList) || StringUtils.isEmpty(compId)) return;
+
+		//#region 删除所有员工信息
+		WorkOrderStaff whereStaff=new WorkOrderStaff();
+		whereStaff.sqlMap().getWhere().and("wo_id",QueryType.IN,idList);
+		workOrderStaffDao.phyDeleteByEntity(whereStaff);
+		//#endregion
+
+		WorkOrder where=new WorkOrder();
+		where.sqlMap().getWhere().and("id", QueryType.IN,idList);
+		//#region 获取所有将要被删除的数据
+		List<WorkOrder> workOrderList=dao.findList(where);
+		workOrderList.forEach(item->{
+			List<FileUpload> fileUploadList=FileUploadUtils.findFileUpload(item.getId(),bizType);
+			deleteFileUpload(fileUploadList);
+		});
+		//#endregion
+
+		dao.phyDeleteByEntity(where);
 	}
 	
 }
