@@ -11,10 +11,10 @@
 			</div>
 		</div>
 		<div class="box-body">
-			<#form:form id="searchForm" model="${userSession}" action="${ctx}//auth/userSession/listData" method="post" class="form-inline"
+			<#form:form id="searchForm" model="${userSession}" action="${ctx}/auth/userSession/listData" method="post" class="form-inline"
 					data-page-no="${parameter.pageNo}" data-page-size="${parameter.pageSize}" data-order-by="${parameter.orderBy}">
 				<div class="form-group">
-					<label class="control-label">${text('用户标识')}：</label>
+					<label class="control-label">${text('用户ID')}：</label>
 					<div class="control-inline">
 						<#form:input path="userId" maxlength="64" class="form-control width-120"/>
 					</div>
@@ -47,7 +47,7 @@ $('#dataGrid').dataGrid({
 	autoGridWidth:false,
 	columnModel: [
 		{header:'${text("登陆名")}', name:'loginId', index:'a.login_id', width:150, align:"left", frozen:true,fixed:true, formatter: function(val, obj, row, act){
-			return '<a href="${ctx}//auth/userSession/form?userId='+row.userId+'" class="btnList" data-title="${text("查看令牌")}">'+(val||row.id)+'</a>';
+			return '<a href="${ctx}/auth/userSession/form?userId='+row.userId+'" class="btnList" data-title="${text("查看令牌")}">'+(val||row.id)+'</a>';
 		}},
 		{header:'${text("姓名")}', name:'staffName',sortabl:false, width:100, align:"left"},
 		{header:'${text("登录令牌")}', name:'sessionId', index:'a.session_id', width:300, align:"left"},
@@ -55,8 +55,8 @@ $('#dataGrid').dataGrid({
 		{header:'${text("操作")}', name:'actions', width:120, formatter: function(val, obj, row, act){
 			var actions = [];
 			//# if(hasPermi('auth:userSession:edit')){
-				actions.push('<a href="${ctx}//auth/userSession/form?userCode='+row.userCode+'" class="btnList" title="${text("查看令牌")}"><i class="fa fa-pencil"></i>查看</a>&nbsp;');
-				actions.push('<a href="${ctx}//auth/userSession/delete?userCode='+row.userCode+'" class="btnList" title="${text("删除令牌")}" data-confirm="${text("确认要删除该用户登录令牌吗？")}"><i class="fa fa-trash-o"></i>删除</a>&nbsp;');
+				actions.push('<a href="${ctx}/auth/userSession/form?userCode='+row.userCode+'" class="btnList" title="${text("查看令牌")}"><i class="fa fa-pencil"></i>查看</a>&nbsp;');
+				actions.push('<a href="${ctx}/auth/userSession/delete?userCode='+row.userCode+'" class="btnList" title="${text("删除令牌")}" data-confirm="${text("确认要删除该用户登录令牌吗？")}"><i class="fa fa-trash-o"></i>删除</a>&nbsp;');
 			//# }
 			return actions.join('');
 		}}

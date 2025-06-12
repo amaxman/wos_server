@@ -116,6 +116,16 @@ public class WorkOrder extends DataEntity<WorkOrder> {
 		sqlMap.getWhere().and("start_time", QueryType.LTE, DateUtils.getOfDayLast(startTime));
 	}
 
+	private String keyword;
+
+	public String getKeyword() {
+		return keyword;
+	}
+
+	public void setKeyword(String keyword) {
+		this.keyword = keyword;
+	}
+
 	//#endregion
 	
 }
