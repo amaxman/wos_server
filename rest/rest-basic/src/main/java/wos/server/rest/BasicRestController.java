@@ -11,6 +11,7 @@ import com.jeesite.modules.sys.entity.Office;
 import com.jeesite.modules.sys.service.CompanyService;
 import com.jeesite.modules.sys.service.EmployeeService;
 import com.jeesite.modules.sys.service.OfficeService;
+import com.jeesite.modules.sys.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +28,9 @@ import java.util.Locale;
 public class BasicRestController extends BaseController {
 
     //#region 变量
+    @Autowired
+    protected UserService userService;
+
     @Autowired
     private EmployeeService employeeService;
 

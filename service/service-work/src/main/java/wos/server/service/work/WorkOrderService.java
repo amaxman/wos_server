@@ -30,7 +30,7 @@ public class WorkOrderService extends CrudServiceEx<WorkOrderDao, WorkOrder> {
 	@Autowired
 	private WorkOrderStaffDao workOrderStaffDao;
 
-	private final String bizType="workOrder_image";
+	public static final String bizType="workOrder_image";
 	private final String staffBizType="workOrderStaff_image";
 
 	/**

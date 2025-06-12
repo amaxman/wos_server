@@ -1,5 +1,6 @@
 package wos.server.service.work;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.jeesite.common.collect.ListUtils;
@@ -56,6 +57,18 @@ public class WorkOrderStaffService extends CrudServiceEx<WorkOrderStaffDao, Work
 	@Override
 	public List<WorkOrderStaff> findList(WorkOrderStaff workOrderStaff) {
 		return super.findList(workOrderStaff);
+	}
+
+	/**
+	 * 通过工单标识获取所有明细
+	 * @param woId
+	 * @return
+	 */
+	public List<WorkOrderStaff> getList(String woId) {
+		if (StringUtils.isEmpty(woId)) return new ArrayList<>();
+		WorkOrderStaff where=new WorkOrderStaff();
+		where.setWoId(woId);
+		return super.findList(where);
 	}
 	
 	/**

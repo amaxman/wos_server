@@ -130,4 +130,14 @@ public class WorkOrderStaff extends DataEntity<WorkOrderStaff> {
 		this.levelCode = levelCode;
 	}
 	//#endregion
+
+	private String keyword;
+
+	public String getKeyword() {
+		return keyword;
+	}
+
+	public void setKeyword(String keyword) {
+		this.keyword = keyword;
+	}
 }

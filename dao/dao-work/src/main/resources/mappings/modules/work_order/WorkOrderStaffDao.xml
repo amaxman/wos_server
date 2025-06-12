@@ -17,15 +17,20 @@
 		FROM tb_work_order_staff a
 		left join tb_work_order workOrder on a.wo_id=workOrder.id
 		<where>
-			a.staff_id=#{staffId}
+			${sqlMap.where.toSql()}
 			and a.wo_id in (
 				select id from tb_work_order
 				where 1=1
-				<if test="title != null and title != ''">
-					and title like concat('%',#{title},'%')
+				<if test="keyword != null and keyword != ''">
+					and (title like concat('%',#{keyword},'%') or content like concat('%',#{keyword},'%'))
 				</if>
-				<if test="content != null and content != ''">
-					and content like concat('%',#{content},'%')
+				<if test="keyword == null or keyword == ''">
+					<if test="title != null and title != ''">
+						and title like concat('%',#{title},'%')
+					</if>
+					<if test="content != null and content != ''">
+						and content like concat('%',#{content},'%')
+					</if>
 				</if>
 				<if test="startTime != null">
 					and start_time&gt;=#{startTime}
@@ -33,6 +38,7 @@
 				<if test="endTime != null">
 					and start_time&lt;=#{endTime}
 				</if>
+
 
 			)
 		</where>
