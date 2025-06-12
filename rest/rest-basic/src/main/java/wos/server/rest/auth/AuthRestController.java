@@ -130,13 +130,6 @@ public class AuthRestController extends BasicRestController {
     }
 
     /**
-     *  获取用户令牌
-     * @param userId
-     * @param userPassword
-     * @return
-     * @throws Exception
-     */
-    /**
      * 获取用户令牌
      *
      * @param userId
@@ -220,26 +213,15 @@ public class AuthRestController extends BasicRestController {
 
     }
 
-    /**
-     * 校验企业与用户状态
-     *
-     * @param userCode
-     * @throws Exception
-     */
-    private void checkAuth(HttpServletRequest request, String userCode) throws Exception {
-        //#region 企业信息
-        if (StringUtils.isEmpty(userCode))
-            throw new Exception("用户编码不允许为空");
-
-        //#endregion
-
-        //#region 员工信息
-        User user = userService.get(userCode);
-        if (user == null) throw new Exception("用户不存在");
-        if (!StringUtils.equalsIgnoreCase(user.getStatus(), DataEntity.STATUS_NORMAL))
-            throw new Exception("用户状态异常");
-        //#endregion
-
+    @RequestMapping(method = {RequestMethod.GET, RequestMethod.POST}, path = "/logout")
+    @ResponseBody
+    @ApiOperation(value = "注销")
+    public JsonMsg<Void> logout(HttpServletRequest request, String sessionId) {
+        if (StringUtils.isEmpty(sessionId)) return error("令牌不允许为空");
+        UserSessionRestEntity userSessionRestEntity = Caches.getUserSession(sessionId); //自缓存中获取用户信息
+        if (userSessionRestEntity == null) return error("令牌错误");
+        Caches.removeUserSession(sessionId);
+        return success("注销成功");
     }
 
     //#endregion
