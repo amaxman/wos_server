@@ -11,5 +11,32 @@
 		</where>
 		ORDER BY ${sqlMap.order.toSql()}
 	</select> -->
+
+	<select id="findMyList" resultType="WorkOrderStaff">
+		SELECT a.*,workOrder.title,workOrder.content,workOrder.start_time,workOrder.end_time,workOrder.cate_code,workOrder.level_code
+		FROM tb_work_order_staff a
+		left join tb_work_order workOrder on a.wo_id=workOrder.id
+		<where>
+			a.staff_id=#{staffId}
+			and a.wo_id in (
+				select id from tb_work_order
+				where 1=1
+				<if test="title != null and title != ''">
+					and title like concat('%',#{title},'%')
+				</if>
+				<if test="content != null and content != ''">
+					and content like concat('%',#{content},'%')
+				</if>
+				<if test="startTime != null">
+					and start_time&gt;=#{startTime}
+				</if>
+				<if test="endTime != null">
+					and start_time&lt;=#{endTime}
+				</if>
+
+			)
+		</where>
+		ORDER BY workOrder.start_time desc
+	</select>
 	
 </mapper>

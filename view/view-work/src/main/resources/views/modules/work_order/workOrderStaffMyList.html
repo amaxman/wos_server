@@ -1,0 +1,119 @@
+<% layout('/layouts/default.html', {title: '我的工单', libs: ['dataGrid']}){ %>
+<div class="main-content">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa icon-notebook"></i> ${text('我的工单')}
+			</div>
+			<div class="box-tools pull-right">
+				<% if(hasPermi('work_order:workOrderStaff:myView')){ %>
+				<a href="#" class="btn btn-default" id="btnComplete"><i class="fa fa-trash-o"></i> ${text('批量完成')}</a>
+				<% } %>
+			</div>
+		</div>
+		<div class="box-body">
+			<#form:form id="searchForm" model="${workOrderStaff}" action="${ctx}/work_order/workOrderStaff/listMyData" method="post" class="form-inline"
+			data-page-no="${parameter.pageNo}" data-page-size="${parameter.pageSize}" data-order-by="${parameter.orderBy}">
+			<div class="form-group">
+				<label class="control-label">${text('标题')}：</label>
+				<div class="control-inline">
+					<#form:input path="title" maxlength="50" class="form-control width-120"/>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">${text('内容')}：</label>
+				<div class="control-inline">
+					<#form:input path="content" class="form-control width-120"/>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">${text('开始时间')}：</label>
+				<div class="control-inline">
+					<#form:input path="startTime" readonly="true" maxlength="20" class="form-control laydate width-datetime"
+					dataFormat="datetime" data-type="datetime" data-format="yyyy-MM-dd HH:mm"/>
+					-
+					<#form:input path="endTime" readonly="true" maxlength="20" class="form-control laydate width-datetime"
+					dataFormat="datetime" data-type="datetime" data-format="yyyy-MM-dd HH:mm"/>
+				</div>
+			</div>
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary btn-sm">${text('查询')}</button>
+				<button type="reset" class="btn btn-default btn-sm isQuick">${text('重置')}</button>
+			</div>
+		</#form:form>
+		<table id="dataGrid"></table>
+		<div id="dataGridPage"></div>
+	</div>
+</div>
+</div>
+<% } %>
+<script>
+	//# if(hasPermi('work_order:workOrderStaff:edit')){
+	$('#btnComplete').click(function(){
+		var ids=$('#dataGrid').dataGrid('getSelectRows');
+		if (ids==undefined || ids=='') {
+			js.showErrorMessage("${text('请选择需要批量完成的工单')}");
+			return;
+		}
+
+		let data={ids:ids.join(',')};
+
+		js.confirm(
+				'确认批量完成选中的工单吗？',
+				'${ctx}/work_order/workOrderStaff/completes',
+				data,
+				function(data){
+					js.showMessage(data.message);
+					page();
+				},
+				'json',
+				true,
+				'正在批量完成工单...'
+		);
+
+	});
+	//# }
+
+//# // 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	showRownum:false,
+	showCheckbox:true,
+	columnModel: [
+		{header:'${text("标题")}', name:'title', index:'a.title', width:150, align:"left", frozen:true, formatter: function(val, obj, row, act){
+				return '<a href="${ctx}/work_order/workOrder/form?id='+row.id+'" class="btnList" data-title="${text("编辑工单")}">'+(val||row.id)+'</a>';
+			}},
+		{header:'${text("内容")}', name:'content', index:'a.content', width:150, align:"left"},
+		{header:'${text("开始时间")}', name:'startTime', index:'a.start_time', width:150, align:"center"},
+		{header:'${text("结束时间")}', name:'endTime', index:'a.end_time', width:150, align:"center"},
+		{header:'${text("类别")}', name:'cateCode', index:'a.cate_code', width:150, align:"center", formatter: function(val, obj, row, act){
+				if (val==undefined || val==null || val=='') return '';
+				return js.getDictLabel("#{@DictUtils.getDictListJson('work_order_cate')}", val, '${text("未知")}', true);
+			}},
+		{header:'${text("级别")}', name:'levelCode', index:'a.level_code', width:150, align:"center", formatter: function(val, obj, row, act){
+				if (val==undefined || val==null || val=='') return '';
+				return js.getDictLabel("#{@DictUtils.getDictListJson('work_order_level')}", val, '${text("未知")}', true);
+			}},
+		{header:'${text("进度")}', name:'workProgress', index:'a.work_progress', width:80, align:"center",formatter: function(val, obj, row, act){
+				if (val==null || val==undefined || val=='' || val==0 || val=='0') return '未开始';
+				if (val<0 || val>100) return '进度错误';
+				if (val==100) return '<div class="text-gray">已完成</div>';
+				return val+'%';
+			}},
+		{header:'${text("更新时间")}', name:'updateDate', index:'a.update_date', width:150, align:"center"},
+		{header:'${text("备注信息")}', name:'remarks', index:'a.remarks', width:150, align:"left"},
+		{header:'${text("操作")}', name:'actions', width:120, formatter: function(val, obj, row, act){
+			var actions = [];
+			//# if(hasPermi('work_order:workOrderStaff:edit')){
+				actions.push('<a href="${ctx}/work_order/workOrderStaff/form?id='+row.id+'" class="btnList" title="${text("编辑")}"><i class="fa fa-pencil"></i>编辑</a>&nbsp;');
+				actions.push('<a href="${ctx}/work_order/workOrderStaff/complete?id='+row.id+'" class="btnList" title="${text("完成工单")}" data-confirm="${text("确认要完成该工单吗？")}"><i class="fa fa-check"></i>完成</a>&nbsp;');
+			//# }
+			return actions.join('');
+		}}
+	],
+	//# // 加载成功后执行事件
+	ajaxSuccess: function(data){
+		
+	}
+});
+</script>

@@ -107,5 +107,16 @@ public class WorkOrderStaffService extends CrudService<WorkOrderStaffDao, WorkOr
 		List<WorkOrderStaff> list=dao.findList(where);
 		return list==null || list.isEmpty();
 	}
+
+	public Page<WorkOrderStaff> findMyPage(WorkOrderStaff workOrderStaff) {
+		Page<WorkOrderStaff> page=workOrderStaff.getPage();
+		if (page==null) {
+			page=new Page<>();
+			workOrderStaff.setPage(page);
+		}
+		List<WorkOrderStaff> list=dao.findMyList(workOrderStaff);
+		page.setList(list);
+		return page;
+	}
 	
 }
