@@ -5,11 +5,15 @@ import java.util.List;
 import com.jeesite.common.collect.ListUtils;
 import com.jeesite.common.lang.StringUtils;
 import com.jeesite.common.mybatis.mapper.query.QueryType;
+import com.jeesite.common.service.CrudServiceEx;
+import com.jeesite.modules.file.entity.FileUpload;
+import com.jeesite.modules.file.utils.FileUploadUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jeesite.common.entity.Page;
 import com.jeesite.common.service.CrudService;
+import wos.server.entity.work.WorkOrder;
 import wos.server.entity.work.WorkOrderStaff;
 import wos.server.dao.work.WorkOrderStaffDao;
 
@@ -19,7 +23,9 @@ import wos.server.dao.work.WorkOrderStaffDao;
  * @version 2025-06-11
  */
 @Service
-public class WorkOrderStaffService extends CrudService<WorkOrderStaffDao, WorkOrderStaff> {
+public class WorkOrderStaffService extends CrudServiceEx<WorkOrderStaffDao, WorkOrderStaff> {
+
+	private final String bizType="workOrderStaff_image";
 	
 	/**
 	 * 获取单条数据
@@ -60,6 +66,9 @@ public class WorkOrderStaffService extends CrudService<WorkOrderStaffDao, WorkOr
 	@Transactional
 	public void save(WorkOrderStaff workOrderStaff) {
 		super.save(workOrderStaff);
+		// 保存上传图片
+		FileUploadUtils.saveFileUpload(workOrderStaff, workOrderStaff.getId(), bizType);
+		deleteRemovedFile(workOrderStaff.getId(), bizType);	//删除已经删除的文件
 	}
 	
 	/**
@@ -80,6 +89,8 @@ public class WorkOrderStaffService extends CrudService<WorkOrderStaffDao, WorkOr
 	@Transactional
 	public void delete(WorkOrderStaff workOrderStaff) {
 		dao.phyDelete(workOrderStaff);
+		List<FileUpload> fileUploadList=FileUploadUtils.findFileUpload(workOrderStaff.getId(),bizType);
+		deleteFileUpload(fileUploadList);
 	}
 
 	@Transactional
@@ -88,6 +99,15 @@ public class WorkOrderStaffService extends CrudService<WorkOrderStaffDao, WorkOr
 
 		WorkOrderStaff where=new WorkOrderStaff();
 		where.sqlMap().getWhere().and("id", QueryType.IN,idList);
+
+		//#region 获取所有将要被删除的数据
+		List<WorkOrderStaff> list=dao.findList(where);
+		list.forEach(item->{
+			List<FileUpload> fileUploadList=FileUploadUtils.findFileUpload(item.getId(),bizType);
+			deleteFileUpload(fileUploadList);
+		});
+		//#endregion
+
 		dao.phyDeleteByEntity(where);
 	}
 

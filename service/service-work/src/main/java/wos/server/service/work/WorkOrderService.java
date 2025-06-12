@@ -31,7 +31,8 @@ public class WorkOrderService extends CrudServiceEx<WorkOrderDao, WorkOrder> {
 	private WorkOrderStaffDao workOrderStaffDao;
 
 	private final String bizType="workOrder_image";
-	
+	private final String staffBizType="workOrderStaff_image";
+
 	/**
 	 * 获取单条数据
 	 * @param workOrder
@@ -72,7 +73,7 @@ public class WorkOrderService extends CrudServiceEx<WorkOrderDao, WorkOrder> {
 	public void save(WorkOrder workOrder) {
 		super.save(workOrder);
 		// 保存上传图片
-		FileUploadUtils.saveFileUpload(workOrder, workOrder.getId(), "workOrder_image");
+		FileUploadUtils.saveFileUpload(workOrder, workOrder.getId(), bizType);
 		deleteRemovedFile(workOrder.getId(), bizType);	//删除已经删除的文件
 	}
 	
@@ -96,6 +97,7 @@ public class WorkOrderService extends CrudServiceEx<WorkOrderDao, WorkOrder> {
 		if (StringUtils.isNotEmpty(workOrder.getId())) {
 			WorkOrderStaff workOrderStaff=new WorkOrderStaff();
 			workOrderStaff.setWoId(workOrder.getId());
+			deleteFileUpload(workOrderStaff);
 			workOrderStaffDao.phyDeleteByEntity(workOrderStaff);
 		}
 
@@ -105,6 +107,18 @@ public class WorkOrderService extends CrudServiceEx<WorkOrderDao, WorkOrder> {
 		dao.phyDelete(workOrder);
 	}
 
+	/**
+	 * 删除执行人文件
+	 * @param workOrderStaff
+	 */
+	private void deleteFileUpload(WorkOrderStaff workOrderStaff) {
+		List<WorkOrderStaff> workOrderStaffList=workOrderStaffDao.findList(workOrderStaff);
+		workOrderStaffList.forEach(item->{
+			List<FileUpload> fileUploadList=FileUploadUtils.findFileUpload(item.getId(),staffBizType);
+			deleteFileUpload(fileUploadList);
+		});
+	}
+
 	@Transactional
 	public void deleteByIdList(String compId,List<String> idList) {
 		if (ListUtils.isEmpty(idList) || StringUtils.isEmpty(compId)) return;
@@ -112,6 +126,7 @@ public class WorkOrderService extends CrudServiceEx<WorkOrderDao, WorkOrder> {
 		//#region 删除所有员工信息
 		WorkOrderStaff whereStaff=new WorkOrderStaff();
 		whereStaff.sqlMap().getWhere().and("wo_id",QueryType.IN,idList);
+		deleteFileUpload(whereStaff);
 		workOrderStaffDao.phyDeleteByEntity(whereStaff);
 		//#endregion
 
