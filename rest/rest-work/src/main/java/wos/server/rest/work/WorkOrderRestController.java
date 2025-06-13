@@ -9,11 +9,9 @@ import com.jeesite.modules.file.utils.FileUploadUtils;
 import com.jeesite.modules.sys.entity.DictData;
 import com.jeesite.modules.sys.entity.User;
 import com.jeesite.modules.sys.utils.DictUtils;
+import com.jeesite.modules.sys.utils.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 import wos.server.entity.work.WorkOrder;
@@ -86,7 +84,7 @@ public class WorkOrderRestController extends BasicRestController {
     }
 
     @RequestMapping(method = {RequestMethod.GET, RequestMethod.POST}, path = "/delete")
-    public JsonMsg<Page<WorkOrderRestEntity>> delete(HttpServletRequest request, String sessionId, String id) {
+    public JsonMsg<Void> delete(HttpServletRequest request, String sessionId, String id) {
         //#region 用户信息
         UserSessionRestEntity userSessionRestEntity = Caches.getUserSession(sessionId);
         if (userSessionRestEntity == null) return error("请先登陆");
@@ -97,15 +95,15 @@ public class WorkOrderRestController extends BasicRestController {
             return error("删除的工单标识不允许为空");
         }
         WorkOrder where = workOrderService.get(id);
-        if (where == null) return success("工单不存在，可能已经饿被删除");
+        if (where == null) return success("工单不存在，可能已经被删除");
         //#endregion
 
         workOrderService.delete(where);
         return success("工单已被删除");
     }
 
-    @RequestMapping(method = {RequestMethod.POST}, path = "/save")
-    public JsonMsg<String> save(HttpServletRequest request, String sessionId, @RequestBody WorkOrderRestEntity entity) {
+    @RequestMapping(method = {RequestMethod.POST}, path = "/save/{sessionId}")
+    public JsonMsg<String> save(HttpServletRequest request, @PathVariable("sessionId") String sessionId, @RequestBody WorkOrderRestEntity entity) {
         if (entity == null) return error("工单信息不允许为空");
         //#region 用户信息
         UserSessionRestEntity userSessionRestEntity = Caches.getUserSession(sessionId);
@@ -130,6 +128,7 @@ public class WorkOrderRestController extends BasicRestController {
         workOrder.setStartTime(entity.getStartTime());
         workOrder.setEndTime(entity.getEndTime());
         workOrder.setCateCode(entity.getCateCode());
+        workOrder.setLevelCode(entity.getLevelCode());
         workOrder.setUpdateBy(userSessionRestEntity.getUserCode());
         workOrder.setUpdateDate(new Date());
         //#endregion
@@ -138,17 +137,16 @@ public class WorkOrderRestController extends BasicRestController {
         return success(workOrder.getId(), "保存工单成功");
     }
 
-    @RequestMapping(method = {RequestMethod.POST}, path = "/uploadImages")
-    public JsonMsg<Void> uploadImages(String sessionId, String id, HttpServletRequest request) {
+    @RequestMapping(method = {RequestMethod.POST}, path = "/uploadImages/{sessionId}/{id}")
+    public JsonMsg<Void> uploadImages(@PathVariable("sessionId") String sessionId, @PathVariable("id") String id, HttpServletRequest request) {
         //#region 用户信息
         UserSessionRestEntity userSessionRestEntity = Caches.getUserSession(sessionId);
         if (userSessionRestEntity == null) return error("请先登陆");
         //#endregion
 
         //#region 获取数据
-        if (StringUtils.isEmpty(id)) return error("工单标识不允许为空");
         WorkOrder workOrder = workOrderService.get(id);
-        if (workOrder == null) return error("工单不存在，可能已经饿被删除");
+        if (workOrder == null) return error("工单不存在，可能已经被删除");
         //#endregion
 
         //#region 获取上传的文件路径
@@ -201,6 +199,91 @@ public class WorkOrderRestController extends BasicRestController {
             return error("上传文件失败");
         }
         //#endregion
+    }
+
+    /**
+     * 保存工单员工
+     * @param request
+     * @param sessionId
+     * @param entity
+     * @return
+     */
+    @RequestMapping(method = {RequestMethod.POST}, path = "/saveStaff/{sessionId}")
+    public JsonMsg<String> saveStaff(HttpServletRequest request, @PathVariable("sessionId") String sessionId, @RequestBody WorkOrderStaffRestEntity entity) {
+        if (entity == null) return error("员工信息不允许为空");
+        //#region 用户信息
+        UserSessionRestEntity userSessionRestEntity = Caches.getUserSession(sessionId);
+        if (userSessionRestEntity == null) return error("请先登陆");
+        //#endregion
+        //#region 获取工单信息
+        String woId=entity.getWoId();
+        if (StringUtils.isEmpty(woId)) return error("工单标识不允许为空");
+        WorkOrder workOrder=workOrderService.get(woId);
+        if (workOrder==null) return error("工单不存在，可能已经被删除");
+        //#endregion
+
+        //#region 员工信息
+        String staffId=entity.getStaffId();
+        if (StringUtils.isEmpty(staffId)) return error("员工信息不允许为空");
+        User user= UserUtils.get(staffId);
+        if (user==null) return error("员工信息不存在");
+        //#endregion
+        //#region 员工是否被添加
+        if (!workOrderStaffService.allow2Saved(entity.getId(),woId,staffId)) return error("请勿重复添加");
+        //#endregion
+
+        //#region 进度校验
+        String cateCode=workOrder.getCateCode();
+        if (StringUtils.isNotEmpty(cateCode)
+                && entity.getWorkProgress()!=null
+                && entity.getWorkProgress()!=100
+                && entity.getWorkProgress()!=0
+                && StringUtils.equalsIgnoreCase(cateCode,"yes_no")) {
+            return error("工单类型仅允许输入0或100");
+        }
+        //#endregion
+
+        //#region 数据转换
+        WorkOrderStaff workOrderStaff;
+        if (StringUtils.isNotEmpty(entity.getId())) {
+            workOrderStaff=workOrderStaffService.get(entity.getId());
+        } else {
+            workOrderStaff=new WorkOrderStaff();
+            workOrderStaff.setIsNewRecord(true);
+            workOrderStaff.setWoId(entity.getWoId());
+        }
+        if (workOrder==null) {
+            workOrderStaff=new WorkOrderStaff();
+            workOrderStaff.setWoId(entity.getWoId());
+            workOrderStaff.setIsNewRecord(true);
+            workOrderStaff.setCreateBy(userSessionRestEntity.getUserCode());
+            workOrderStaff.setCreateDate(new Date());
+            workOrderStaff.setStaffId(staffId);
+        }
+        workOrderStaff.setStaffId(entity.getStaffId());
+        workOrderStaff.setWorkProgress(entity.getWorkProgress());
+        workOrderStaffService.save(workOrderStaff);
+        //#endregion
+        return success(workOrder.getId(),"保存成功");
+    }
+
+    @RequestMapping(method = {RequestMethod.GET, RequestMethod.POST}, path = "/deleteStaff")
+    public JsonMsg<Void> deleteStaff(HttpServletRequest request, String sessionId, String id) {
+        //#region 用户信息
+        UserSessionRestEntity userSessionRestEntity = Caches.getUserSession(sessionId);
+        if (userSessionRestEntity == null) return error("请先登陆");
+        //#endregion
+
+        //#region 获取数据
+        if (StringUtils.isEmpty(id)) {
+            return error("删除标识不允许为空");
+        }
+        WorkOrderStaff where = workOrderStaffService.get(id);
+        if (where == null) return success("员工不存在，可能已经被移出工单");
+        //#endregion
+
+        workOrderStaffService.delete(where);
+        return success("移除员工成功");
     }
     //#endregion
 
