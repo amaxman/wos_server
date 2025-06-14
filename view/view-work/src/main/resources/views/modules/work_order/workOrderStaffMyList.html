@@ -81,7 +81,7 @@ $('#dataGrid').dataGrid({
 	showCheckbox:true,
 	columnModel: [
 		{header:'${text("标题")}', name:'title', index:'a.title', width:150, align:"left", frozen:true, formatter: function(val, obj, row, act){
-				return '<a href="${ctx}/work_order/workOrder/form?id='+row.id+'" class="btnList" data-title="${text("编辑工单")}">'+(val||row.id)+'</a>';
+				return (val||row.id);
 			}},
 		{header:'${text("内容")}', name:'content', index:'a.content', width:150, align:"left"},
 		{header:'${text("开始时间")}', name:'startTime', index:'a.start_time', width:150, align:"center"},
